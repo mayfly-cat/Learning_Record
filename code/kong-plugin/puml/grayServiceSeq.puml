@@ -1,0 +1,37 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'灰度调用完整流程
+
+'autonumber
+hide unlinked
+actor "Client\n 终端/接口" as c
+participant "kong网关\n gray_plugin" as k
+participant "灰度配置服务" as g
+participant "redis" as r
+participant "后端服务" as s
+participant "nacos" as n
+
+== 服务注册到nacos，灰度配置中心进行监听 ==
+g -> r : 1.1. 维护域名与对应服务名关系
+s -> n : 1.2. 服务启动时注册服务到nacos，同时带上env信息，定时发送心跳
+activate n
+g -> n : 1.3. 初始化nacos sdk，获取全部服务列表并进行监听
+n --> g : 1.4. 在服务发生变化时发送通知
+deactivate n
+g -> r : 1.5. 即时缓存服务实例信息至nacos
+
+== 灰度配置中心批量同步灰度用户 ==
+g -> r : 2.1. 批量同步灰度用户至redis，有效期为-1
+g -> g : 2.2. 修改灰度参数gray_status为0时，同步删除用户
+g -> r : 2.3. 修改cancel_time 为当前时间
+
+== 请求进入Kong网关插件进行处理 ==
+c -> k : 3.1. 请求进入Kong
+k -> k : 3.2. 获取请求头Authorization解析userId
+k -> r : 3.3. 获取key为 ：jdo_gray_user_{{userId}} 的值
+r --> k : 3.4. 返回值为 true（用户为灰度用户）或为 空（用户不为灰度用户）
+k -> r : 3.5. 获取key为 ：jdo_gray_domain_server_{{serviceHost}} 的值
+r --> k : 3.6. 返回值为实例列表，包括ip&port，权重，envTag信息
+k -> s : 3.7. 依据匹配环境，实例权重等信息随机选择一个ip&port进行转发
+
+@enduml

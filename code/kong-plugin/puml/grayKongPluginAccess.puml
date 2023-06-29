@@ -1,0 +1,18 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件Access方法活动图
+
+start
+:kong.Response.SetHeader("x-hello-from-go-1")\n                 增加请求头标识插件调用情况;
+:model.GetServiceList(kong)\n    获取请求host对应ip列表;
+if (srvList == 0) then (true)
+    :return;
+    stop
+else (false)
+    if (processGray(srvList,kong)) then (true)
+        else (false)
+        :processLive(srvList,kong);
+        endif
+stop
+
+@enduml

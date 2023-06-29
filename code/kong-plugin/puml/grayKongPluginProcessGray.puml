@@ -1,0 +1,28 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件processGray方法活动图
+
+start
+:kong.Request.GetHeader("Authorization")\n 从请求头获取用户token, 若无则直接返回;
+:model.GetUserIdFromJwt(jwt, kong)\n          依据token解析用户id信息;
+if (userId == "") then (true)
+    :return false;
+    stop
+else (false)
+    :Get(redisContext, "jdo_gray_user_"+userId).Result()\n                       从redis读取用户配置信息;
+    if (result == "") then (true)
+        :return false;
+        stop
+    else (false)
+        :kong.Response.SetHeader("x-hello-from-go-4")\n                   新增请求头标识为灰度请求;
+        :model.GetServiceHostListByEnv(conf.EnvGray, srvList)\n                        筛选灰度标识的ip&port列表;
+        if (serviceList == nil) then (true)
+            :return false;
+            stop
+        else (false)
+            :model.GetTargetMachine(serviceList)\n 根据权重信息随机选择一个ip;
+            :kong.Service.SetTarget(ip, int(port));
+            :return true;
+stop
+
+@enduml

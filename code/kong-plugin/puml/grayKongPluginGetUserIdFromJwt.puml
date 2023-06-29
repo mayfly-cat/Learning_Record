@@ -1,0 +1,21 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件GetUserIdFromJwt方法活动图
+
+start
+:kong.Request.GetHeader("Authorization")\n             获取请求头Authorization值;
+if (token == "") then (true)
+    :kong.Request.GetHeader("token")\n 获取请求头token值;
+    if (token == "") then (true)
+        :return "";
+        stop
+    else (false)
+    endif
+else (false)
+endif
+:strings.Split(token, ".");
+:base64.RawURLEncoding.DecodeString(tokenInfo[1])\n                直接解密token第二段信息，不进行校验;
+:             return(tokenInfo[1].UserId)\n获取第二段内sub字段，即为极豆userId;
+stop
+
+@enduml

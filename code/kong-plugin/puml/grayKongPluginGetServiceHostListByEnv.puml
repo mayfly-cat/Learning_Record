@@ -1,0 +1,21 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件GetServiceListByEnv方法活动图
+
+start
+:var targetHosts []conf.ServiceIpPortInfo;
+while(for range serviceList)
+    if(env == EnvGray) then (true)
+        if(serviceList[i].MeteData == "grayTag") then (true)
+            :targetHosts = append(targetHosts, item);
+        endif
+    else(false)
+        if(serviceList[i].MeteData == "") then (true)
+                    :targetHosts = append(targetHosts, item);
+        endif
+    endif
+endwhile
+:return targetHosts;
+stop
+
+@enduml

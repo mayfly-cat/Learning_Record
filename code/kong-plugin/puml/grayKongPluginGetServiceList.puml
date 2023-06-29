@@ -1,0 +1,23 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件GetServiceList方法活动图
+
+start
+:kong.Request.GetHost()\n    获取请求的host信息;
+:Cache.Get(redisContext, "jdo_gray_server_domain_"+serviceHost).Result()\n                                       redis内读取匹配host对应的ip列表;
+if (serviceList == 0) then (true)
+    :kong.Request.GetPath()\n    获取请求的path信息;
+    :strings.Split(pathname, "/")\n           截取第一级路由;
+    :Cache.Get(redisContext, "jdo_gray_server_domain_"+serviceHost+"/"+pathname[1]).Result();
+    if (serviceList == 0) then (true)
+        :return nil;
+        stop
+    else (false)
+    endif
+else (false)
+endif
+:return serviceList;
+
+stop
+
+@enduml

@@ -1,0 +1,41 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+'Kong网关灰度插件逻辑流程图
+
+autonumber
+hide unlinked
+actor "Client\n 终端/接口" as c
+participant "Kong网关" as k
+participant "灰度插件" as kp
+participant "灰度配置服务" as g
+participant "Services(live)" as sl
+participant "Services(gray)" as sg
+
+c -> k : 请求进入网关
+k -> kp : 请求经过Kong网关插件处理
+kp -> kp : 解析请求头Authorization，获得用户id信息
+kp -> g : 获取匹配用户id的配置信息
+
+alt 返回有匹配信息
+g --> kp : 返回true
+kp -> g : 获取host匹配的ip&port列表\n 包括envTag与权重信息
+rnote over g
+此处如拿不到nacos的ip列表，则插件直接返回
+Kong会继续按原方式进行处理
+end rnote
+g --> kp : 返回实例列表
+kp -> kp : 请求头增加 env 字段，值为 grayTag 标识为灰度请求\n
+kp -> sg : 依据env与权重，选择并转发请求到服务灰度地址
+
+else 返回无匹配信息
+g --> kp : 返回空
+kp -> g : 获取host匹配的ip&port列表\n 包括envTag与权重信息
+rnote over g
+此处如拿不到nacos的ip列表，则插件直接返回
+Kong会继续按原方式进行处理
+end rnote
+g --> kp : 返回实例列表
+kp -> sl : 依据env与权重，选择并转发请求到服务live地址
+end
+
+@enduml

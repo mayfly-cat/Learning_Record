@@ -1,0 +1,22 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件main方法活动图
+
+start
+:flag.Parse();
+note right
+  通用方法，以命令行方式传入启动参数
+  包括：Apollo读取标识（灰度/live)
+end note
+:conf.InitApollo();
+:model.InitRedis();
+
+:server.StartServer(New, Version, Priority);
+note right
+  version: 版本号
+  priority: 插件执行优先级
+end note
+
+stop
+
+@enduml

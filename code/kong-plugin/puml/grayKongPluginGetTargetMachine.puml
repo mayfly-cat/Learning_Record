@@ -1,0 +1,11 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件GetTargetMachine方法活动图
+
+start
+:sort.Sort(&targetHosts)\n serviceList按权重排序;
+:ipNo := GetWeight(weights)\n    依据权重随机选择一个ip;
+:return liveHosts[ipNo].IPAddr, liveHosts[ipNo].Port;
+stop
+
+@enduml

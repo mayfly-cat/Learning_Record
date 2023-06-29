@@ -1,0 +1,11 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件New方法活动图
+
+start
+
+:return &config{};
+
+stop
+
+@enduml

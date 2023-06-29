@@ -1,0 +1,16 @@
+@startuml
+'https://plantuml.com/activity-diagram-beta
+'Kong网关灰度插件processLive方法活动图
+
+start
+:model.GetServiceHostListByEnv(conf.EnvLive, srvList)\n                    筛选live标识的ip&port列表;
+        if (serviceList == nil) then (true)
+            :return;
+            stop
+        else (false)
+            :model.GetTargetMachine(serviceList)\n          根据权重信息随机选择一个ip;
+            :kong.Service.SetTarget(ip, int(port));
+            :return;
+stop
+
+@enduml
